@@ -1,34 +1,44 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, ParseIntPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { UserEntity } from './entities/user.entity';
 
-@Controller('users')
+const name = 'users';
+
+@Controller(name)
+@ApiTags(name)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @ApiCreatedResponse({ type: UserEntity })
+  async create(@Body() dto: CreateUserDto) {
+    return this.usersService.create(dto);
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @ApiOkResponse({ type: UserEntity, isArray: true })
+  findAll(): Promise<UserEntity[]> {
+    return this.usersService.findMany();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @ApiOkResponse({ type: UserEntity })
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
+    return this.usersService.findOne({ id });
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @ApiOkResponse({ type: UserEntity })
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto): Promise<UserEntity> {
+    return this.usersService.update({ id }, updateUserDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @ApiOkResponse({ type: UserEntity })
+  remove(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
+    return this.usersService.delete({ id });
   }
 }
