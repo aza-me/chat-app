@@ -1,12 +1,18 @@
-import { CommonEntity } from 'src/common/entities/common.entity';
-import { UserType } from '../types/user.type';
+import { CommonEntity } from 'common/entities/common.entity';
+import { User } from '@prisma/client';
 
-export class UserEntity extends CommonEntity implements UserType {
+export class UserEntity extends CommonEntity implements User {
+  constructor(partial: Partial<UserEntity>) {
+    super();
+    Object.assign(this, partial);
+  }
+
   email: string;
-  password: string;
   firstName: string;
   lastName: string;
+  username: string;
   phone: string;
   bio: string;
   birthdayDate: Date;
+  password: string;
 }

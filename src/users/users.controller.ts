@@ -1,44 +1,64 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, ParseIntPipe, Res, HttpStatus, Patch, Put } from '@nestjs/common';
+import { Response } from 'express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { responseTemplate } from 'common/templates/response-template';
+import prismaErrorHandler from 'common/utils/prisma-error-handler';
 import { UserEntity } from './entities/user.entity';
 
 const name = 'users';
 
 @Controller(name)
-@ApiTags(name)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @ApiCreatedResponse({ type: UserEntity })
-  async create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
+  async create(@Res() res: Response, @Body() createUserDto: CreateUserDto) {
+    try {
+      const user = await this.usersService.create(createUserDto);
+
+      res.status(200).send(responseTemplate({ data: user }));
+    } catch (e) {
+      const { messages, statusCode } = prismaErrorHandler(e);
+      res.status(statusCode).send(responseTemplate({ messages, success: false }));
+    }
   }
 
   @Get()
-  @ApiOkResponse({ type: UserEntity, isArray: true })
-  findAll(): Promise<UserEntity[]> {
-    return this.usersService.findMany();
+  async findAll(@Res() res: Response) {
+    const users = await this.usersService.findMany();
+    res.status(HttpStatus.OK).send(responseTemplate({ data: users }));
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: UserEntity })
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
-    return this.usersService.findOne({ id });
+  async findOne(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    try {
+      const user = await this.usersService.findOne({ id });
+      res.status(HttpStatus.OK).send(responseTemplate({ data: user }));
+    } catch (e) {
+      res.status(HttpStatus.NOT_FOUND).send(responseTemplate({ success: false }));
+    }
   }
 
-  @Patch(':id')
-  @ApiOkResponse({ type: UserEntity })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto): Promise<UserEntity> {
-    return this.usersService.update({ id }, updateUserDto);
+  @Put(':id')
+  async update(@Param('id', ParseIntPipe) id: number, @Res() res: Response, @Body() updateUserDto: UpdateUserDto) {
+    try {
+      const user = new UserEntity(await this.usersService.update({ id }, updateUserDto));
+      res.status(HttpStatus.OK).send(responseTemplate({ data: user }));
+    } catch (e) {
+      const { messages, statusCode } = prismaErrorHandler(e);
+      res.status(statusCode).send(responseTemplate({ messages, success: false }));
+    }
   }
 
   @Delete(':id')
-  @ApiOkResponse({ type: UserEntity })
-  remove(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
-    return this.usersService.delete({ id });
+  async remove(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    try {
+      const user = await this.usersService.delete({ id });
+      res.status(HttpStatus.OK).send(responseTemplate({ data: user }));
+    } catch (e) {
+      res.status(HttpStatus.NOT_FOUND).send(responseTemplate({ success: false }));
+    }
   }
 }
