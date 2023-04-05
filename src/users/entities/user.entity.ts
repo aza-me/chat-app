@@ -1,4 +1,4 @@
-import { CommonEntity } from 'src/common/common.entity';
+import { CommonEntity } from 'src/common/entities/common.entity';
 import { UserType } from '../types/user.type';
 
 export class UserEntity extends CommonEntity implements UserType {
