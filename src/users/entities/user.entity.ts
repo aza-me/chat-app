@@ -1,37 +1,33 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity } from 'typeorm';
-import { IsEmail, Min, IsPhoneNumber, IsString, MaxLength, IsDateString } from 'class-validator';
+import * as bcrypt from 'bcrypt';
 
-@Entity()
+@Entity('Users')
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  @IsEmail()
-  @IsString()
+  @Column({ unique: true })
   email: string;
 
-  @Column()
-  @IsPhoneNumber()
+  @Column({ unique: true, nullable: true })
   phone: string;
 
   @Column()
-  @IsString()
-  @Min(8)
   password: string;
 
-  @Column()
-  @IsString()
-  @MaxLength(20)
+  @Column({ unique: true })
+  username: string;
+
+  @Column({ nullable: true })
   firstName: string;
 
-  @Column()
-  @IsString()
-  @MaxLength(20)
+  @Column({ nullable: true })
   lastName: string;
 
-  @Column()
-  @IsDateString()
+  @Column({ nullable: true })
+  bio: string;
+
+  @Column({ nullable: true })
   birthdayDate: Date;
 
   @CreateDateColumn()
@@ -39,4 +35,12 @@ export class User extends BaseEntity {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  async setPassword(password: string): Promise<{ salt: string; password: string }> {
+    const salt = await bcrypt.genSalt();
+    return {
+      salt,
+      password: await bcrypt.hash(password, salt),
+    };
+  }
 }
