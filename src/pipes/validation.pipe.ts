@@ -1,4 +1,4 @@
-import { UnprocessableEntityException, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, UnprocessableEntityException, ValidationPipe } from '@nestjs/common';
 import responseTemplate from 'common/templates/responseTemplate';
 
 export default new ValidationPipe({
@@ -9,6 +9,8 @@ export default new ValidationPipe({
       errorMessages[error.property] = Object.values(error.constraints).join('. ').trim();
     });
 
-    return new UnprocessableEntityException(responseTemplate({ messages: errorMessages, success: false }));
+    return new UnprocessableEntityException(
+      responseTemplate({ messages: errorMessages, success: false, statusCode: HttpStatus.UNPROCESSABLE_ENTITY })
+    );
   },
 });
