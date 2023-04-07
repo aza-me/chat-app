@@ -1,4 +1,4 @@
-# PROJECT : Chat App Backend
+# Chat App Backend
 
 ## Technology Stack
 
