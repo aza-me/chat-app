@@ -16,6 +16,8 @@ You will need docker installed on your machine
 
 Build:
 
+`docker compose down`
+
 `docker compose up`
 
 Server start on:
