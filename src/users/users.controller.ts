@@ -6,10 +6,11 @@ import responseTemplate from 'common/templates/responseTemplate';
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 import removeKeys from 'common/helpers/remove-keys';
-import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from 'auth/strategies/jwt-auth.guard';
 
 @Controller('users')
 @ApiTags('Users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

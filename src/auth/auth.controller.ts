@@ -8,12 +8,15 @@ import { UsersService } from 'users/users.service';
 import { User } from 'users/entities/user.entity';
 import removeKeys from 'common/helpers/remove-keys';
 import { JwtAuthGuard } from './strategies/jwt-auth.guard';
+import { ApiBody, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('auth')
+@ApiTags('Auth')
 export class AuthController {
   constructor(private authService: AuthService, private usersService: UsersService) {}
 
   @Post('login')
+  @ApiBody({ type: LoginDto })
   async login(@Body() loginDto: LoginDto) {
     const { user, accessToken } = await this.authService.login(loginDto);
 
@@ -21,6 +24,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @ApiBody({ type: CreateUserDto })
   async register(@Body() createUserDto: CreateUserDto) {
     const registerData = await this.usersService.create(createUserDto);
     const { user, accessToken } = await this.authService.register(registerData);
@@ -29,6 +33,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: User })
   @Get('profile')
   async getProfile(@Req() req: Request) {
     const { id } = req.user as User;
