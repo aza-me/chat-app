@@ -52,13 +52,13 @@ export class UsersService {
     try {
       const user = await this.usersRepository.findOneByOrFail({ id });
 
-      user.email = email;
-      user.firstName = firstName;
-      user.lastName = lastName;
-      user.username = username;
-      user.bio = bio;
-      user.birthdayDate = birthdayDate;
-      user.phone = phone;
+      user.email = email ?? user.email;
+      user.firstName = firstName ?? user.firstName;
+      user.lastName = lastName ?? user.lastName;
+      user.username = username ?? user.username;
+      user.bio = bio ?? user.bio;
+      user.birthdayDate = birthdayDate ?? user.birthdayDate;
+      user.phone = phone ?? user.phone;
 
       if (password) {
         const { password: hashedPassword } = await user.setPassword(password);
