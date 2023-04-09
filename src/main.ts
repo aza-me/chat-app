@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import validationPipe from 'pipes/validation.pipe';
+import 'dotenv/config';
 
 async function bootstrap() {
   const PORT = process.env.PORT || 8000;
@@ -13,7 +14,6 @@ async function bootstrap() {
 
   // Swagger
   const config = new DocumentBuilder().setTitle('Chat App Docs').setVersion('1.0').build();
-
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
