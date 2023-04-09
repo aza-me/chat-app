@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 const saltOrRounds = 10;
@@ -25,7 +25,6 @@ export class UsersService {
       user.username = createUserDto.username;
 
       await user.save();
-      delete user.password;
 
       return user;
     } catch {
@@ -34,23 +33,14 @@ export class UsersService {
   }
 
   async findAll() {
-    const users = await this.usersRepository.find().then((users) =>
-      users.map((user) => {
-        delete user.password;
-
-        return user;
-      })
-    );
+    const users = await this.usersRepository.find();
 
     return users;
   }
 
-  async findOne(id: number) {
+  async findOne(userData: FindOptionsWhere<User>) {
     try {
-      const user = await this.usersRepository.findOneByOrFail({ id });
-      delete user.password;
-
-      return user;
+      return await this.usersRepository.findOneByOrFail(userData);
     } catch {
       throw new NotFoundException('User not found');
     }
@@ -62,13 +52,13 @@ export class UsersService {
     try {
       const user = await this.usersRepository.findOneByOrFail({ id });
 
-      user.email = email;
-      user.firstName = firstName;
-      user.lastName = lastName;
-      user.username = username;
-      user.bio = bio;
-      user.birthdayDate = birthdayDate;
-      user.phone = phone;
+      user.email = email ?? user.email;
+      user.firstName = firstName ?? user.firstName;
+      user.lastName = lastName ?? user.lastName;
+      user.username = username ?? user.username;
+      user.bio = bio ?? user.bio;
+      user.birthdayDate = birthdayDate ?? user.birthdayDate;
+      user.phone = phone ?? user.phone;
 
       if (password) {
         const { password: hashedPassword } = await user.setPassword(password);
@@ -76,8 +66,6 @@ export class UsersService {
       }
 
       await user.save();
-
-      delete user.password;
 
       return user;
     } catch (e) {
@@ -92,9 +80,7 @@ export class UsersService {
   async remove(id: number) {
     try {
       const user = await this.usersRepository.findOneByOrFail({ id });
-
       await this.usersRepository.delete(id);
-      delete user.password;
 
       return user;
     } catch {

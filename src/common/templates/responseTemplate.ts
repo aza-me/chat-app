@@ -3,6 +3,7 @@ export interface ResponseTemplate<T> {
   messages?: Record<string, string>;
   success?: boolean;
   statusCode: number;
+  [key: string]: any;
 }
 
 const responseTemplate = <T>({
