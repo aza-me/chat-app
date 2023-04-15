@@ -39,6 +39,18 @@ export class User extends BaseEntity {
   @ApiProperty()
   birthdayDate: Date;
 
+  @Column({ default: false })
+  @ApiProperty()
+  verified: boolean;
+
+  @Column({ nullable: true })
+  @ApiProperty()
+  verificationCode: string;
+
+  @Column({ nullable: true, type: 'timestamp with time zone' })
+  @ApiProperty()
+  verificationCreatedAt: Date;
+
   @CreateDateColumn()
   @ApiProperty()
   createdAt: Date;

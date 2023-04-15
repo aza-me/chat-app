@@ -9,6 +9,7 @@ import { User } from 'users/entities/user.entity';
 import removeKeys from 'common/helpers/remove-keys';
 import { JwtAuthGuard } from './strategies/jwt-auth.guard';
 import { ApiBody, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ConfirmUserDto } from 'users/dto/confirm-user.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -26,10 +27,22 @@ export class AuthController {
   @Post('register')
   @ApiBody({ type: CreateUserDto })
   async register(@Body() createUserDto: CreateUserDto) {
-    const registerData = await this.usersService.create(createUserDto);
-    const { user, accessToken } = await this.authService.register(registerData);
+    const { verificationCode } = await this.authService.register(createUserDto);
 
-    return responseTemplate({ data: user, accessToken, success: true, statusCode: HttpStatus.CREATED });
+    return responseTemplate({
+      message: 'Verification code sent to your email',
+      verificationCode,
+      success: true,
+      statusCode: HttpStatus.CREATED,
+    });
+  }
+
+  @Post('confirm-code')
+  @ApiBody({ type: ConfirmUserDto })
+  async confirmVerificationCode(@Body() confirmUserDto: ConfirmUserDto) {
+    const { user, accessToken } = await this.authService.confirmVerificationCode(confirmUserDto);
+
+    return responseTemplate({ data: user, accessToken, success: true, statusCode: HttpStatus.OK });
   }
 
   @UseGuards(JwtAuthGuard)
