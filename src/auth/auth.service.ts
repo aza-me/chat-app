@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'users/users.service';
@@ -6,6 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { removeUserKeys } from 'common/helpers/remove-keys';
 import { CreateUserDto } from 'users/dto/create-user.dto';
 import { ConfirmUserDto } from 'users/dto/confirm-user.dto';
+import { ResendCodeUserDto } from 'users/dto/resend-code-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -57,5 +58,15 @@ export class AuthService {
       user: removeUserKeys(user),
       accessToken,
     };
+  }
+
+  async resendVerificationCode(resendCodeUserDto: ResendCodeUserDto) {
+    const user = await this.usersService.findOne({ email: resendCodeUserDto.email });
+
+    if (user.verified) {
+      throw new ConflictException(`User's email already confirmed`);
+    }
+
+    await this.usersService.getVerificationCodeForUser(user.email);
   }
 }

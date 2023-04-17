@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpStatus, UseGuards, Get, Req } from '@nestjs/common';
+import { Controller, Post, Body, HttpStatus, UseGuards, Get, Req, HttpCode } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -10,6 +10,7 @@ import { removeUserKeys } from 'common/helpers/remove-keys';
 import { JwtAuthGuard } from './strategies/jwt-auth.guard';
 import { ApiBody, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ConfirmUserDto } from 'users/dto/confirm-user.dto';
+import { ResendCodeUserDto } from 'users/dto/resend-code-user.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -42,6 +43,19 @@ export class AuthController {
     const { user, accessToken } = await this.authService.confirmVerificationCode(confirmUserDto);
 
     return responseTemplate({ data: user, accessToken, success: true, statusCode: HttpStatus.OK });
+  }
+
+  @Post('resend-code')
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: ConfirmUserDto })
+  async resendVerificationCode(@Body() resendCodeUserDto: ResendCodeUserDto) {
+    await this.authService.resendVerificationCode(resendCodeUserDto);
+
+    return responseTemplate({
+      message: 'Verification code sent to your email',
+      success: true,
+      statusCode: HttpStatus.OK,
+    });
   }
 
   @UseGuards(JwtAuthGuard)
