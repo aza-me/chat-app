@@ -1,9 +1,9 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'users/users.service';
 import { LoginDto } from './dto/login.dto';
-import removeKeys from 'common/helpers/remove-keys';
+import { removeUserKeys } from 'common/helpers/remove-keys';
 import { CreateUserDto } from 'users/dto/create-user.dto';
 import { ConfirmUserDto } from 'users/dto/confirm-user.dto';
 
@@ -20,10 +20,14 @@ export class AuthService {
         throw new UnauthorizedException('Email or password invalid');
       }
 
+      if (!user.verified) {
+        throw new UnauthorizedException('User email not verified');
+      }
+
       const accessToken = await this.jwtService.signAsync({ id: user.id, email: user.email, username: user.username });
 
       return {
-        user: removeKeys(user, ['password']),
+        user: removeUserKeys(user),
         accessToken,
       };
     } catch (e) {
@@ -33,11 +37,9 @@ export class AuthService {
 
   async register(createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
-    const verificationCode = await this.usersService.getVerificationCodeForUser(user.email);
+    await this.usersService.getVerificationCodeForUser(user.email);
 
-    return {
-      verificationCode,
-    };
+    return true;
   }
 
   async confirmVerificationCode(confirmUserDto: ConfirmUserDto) {
@@ -52,7 +54,7 @@ export class AuthService {
     });
 
     return {
-      user: removeKeys(user, ['password']),
+      user: removeUserKeys(user),
       accessToken,
     };
   }

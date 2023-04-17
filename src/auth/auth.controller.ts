@@ -6,7 +6,7 @@ import responseTemplate from 'common/templates/responseTemplate';
 import { CreateUserDto } from 'users/dto/create-user.dto';
 import { UsersService } from 'users/users.service';
 import { User } from 'users/entities/user.entity';
-import removeKeys from 'common/helpers/remove-keys';
+import { removeUserKeys } from 'common/helpers/remove-keys';
 import { JwtAuthGuard } from './strategies/jwt-auth.guard';
 import { ApiBody, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ConfirmUserDto } from 'users/dto/confirm-user.dto';
@@ -27,11 +27,10 @@ export class AuthController {
   @Post('register')
   @ApiBody({ type: CreateUserDto })
   async register(@Body() createUserDto: CreateUserDto) {
-    const { verificationCode } = await this.authService.register(createUserDto);
+    await this.authService.register(createUserDto);
 
     return responseTemplate({
       message: 'Verification code sent to your email',
-      verificationCode,
       success: true,
       statusCode: HttpStatus.CREATED,
     });
@@ -52,6 +51,6 @@ export class AuthController {
     const { id } = req.user as User;
     const user = await this.usersService.findOne({ id });
 
-    return responseTemplate({ data: removeKeys(user, ['password']), success: true, statusCode: 200 });
+    return responseTemplate({ data: removeUserKeys(user), success: true, statusCode: 200 });
   }
 }

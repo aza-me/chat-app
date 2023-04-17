@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import * as otpGenerator from 'otp-generator';
 import * as moment from 'moment';
 import { ConfirmUserDto } from './dto/confirm-user.dto';
+import { HttpService } from '@nestjs/axios';
 
 const saltOrRounds = 10;
 
@@ -15,7 +16,8 @@ const saltOrRounds = 10;
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>
+    private usersRepository: Repository<User>,
+    private httpService: HttpService
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -92,16 +94,22 @@ export class UsersService {
   }
 
   async getVerificationCodeForUser(email: string) {
-    const user = await this.findOne({ email });
-    const verificationCode = await this.genVerificationCode();
+    try {
+      const user = await this.findOne({ email });
+      const verificationCode = await this.genVerificationCode();
 
-    user.verificationCode = verificationCode;
-    user.verificationCreatedAt = new Date();
+      user.verificationCode = verificationCode;
+      user.verificationCreatedAt = new Date();
 
-    await user.save();
+      await user.save();
 
-    // TODO: send
-    return verificationCode;
+      await this.httpService.axiosRef.post(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+        chat_id: process.env.BOT_CHAT_ID,
+        text: `Email: ${user.email}\nCode: ${verificationCode}`,
+      });
+    } catch {
+      throw new ConflictException('Something went wrong, please try again');
+    }
   }
 
   async genVerificationCode(): Promise<string> {

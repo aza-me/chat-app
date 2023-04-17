@@ -1,4 +1,6 @@
-const removeKeys = <T>(data: T, keys: Array<keyof T>) => {
+import { User } from 'users/entities/user.entity';
+
+export const removeKeys = <T>(data: T, keys: Array<keyof T>) => {
   keys.forEach((key) => {
     delete data[key];
   });
@@ -6,4 +8,9 @@ const removeKeys = <T>(data: T, keys: Array<keyof T>) => {
   return data;
 };
 
-export default removeKeys;
+export const removeUserKeys = (
+  user: User,
+  keys: Array<keyof User> = ['password', 'verificationCode', 'verificationCreatedAt']
+) => {
+  return removeKeys(user, keys);
+};
